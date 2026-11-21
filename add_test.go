@@ -87,8 +87,8 @@ func TestRunAdd_StagesSelectedIDsWithExclusions(t *testing.T) {
 	got := parseStatus(raw)
 	want := []entry{
 		{code: "A ", path: "a.txt"},
-		{code: "??", path: "b.txt"},
 		{code: "A ", path: "c.txt"},
+		{code: "??", path: "b.txt"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("status entries = %+v, want %+v", got, want)

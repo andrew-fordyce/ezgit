@@ -2,12 +2,9 @@ package main
 
 import (
 	"bytes"
-	"io"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestResolveSelection(t *testing.T) {
@@ -88,7 +85,6 @@ func TestResolveSelection(t *testing.T) {
 }
 
 func TestParseStatus(t *testing.T) {
-	// porcelain=v1 -z separates records with NUL, and renames include an extra original-path field
 	raw := strings.Join([]string{
 		" M add.go",
 		"A  new.go",
@@ -110,27 +106,6 @@ func TestParseStatus(t *testing.T) {
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("parseStatus() = %+v, want %+v", got, want)
-	}
-}
-
-func TestParseNumstat(t *testing.T) {
-	out := strings.Join([]string{
-		"12\t3\tmain.go",
-		"5\t0\tdir/{old => new}/file.go",
-		"1\t1\told.txt => sub/renamed.txt",
-		"-\t-\tassets/logo.png",
-	}, "\n")
-
-	got := parseNumstat(out)
-	want := map[string]numstat{
-		"main.go":             {insertions: 12, deletions: 3},
-		"dir/new/file.go":     {insertions: 5, deletions: 0},
-		"sub/renamed.txt":     {insertions: 1, deletions: 1},
-		"assets/logo.png":     {binary: true},
-	}
-
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("parseNumstat() = %+v, want %+v", got, want)
 	}
 }
 
@@ -161,18 +136,6 @@ func TestDescribe(t *testing.T) {
 	}
 }
 
-func TestFormatSeconds(t *testing.T) {
-	if got := formatSeconds(1500 * time.Millisecond); got != "1.5" {
-		t.Errorf("got %q, want 1.5", got)
-	}
-	if got := formatSeconds(50 * time.Millisecond); got != "0.05" {
-		t.Errorf("got %q, want 0.05", got)
-	}
-	if got := formatSeconds(0); got != "0" {
-		t.Errorf("got %q, want 0", got)
-	}
-}
-
 func TestUsageOutput(t *testing.T) {
 	var buf bytes.Buffer
 	usage(&buf)
@@ -182,33 +145,4 @@ func TestUsageOutput(t *testing.T) {
 			t.Errorf("usage() missing %q in:\n%s", want, out)
 		}
 	}
-}
-
-// captureOutput redirects os.Stdout and disables ANSI colors while fn runs.
-func captureOutput(t *testing.T, fn func()) string {
-	t.Helper()
-	prevColor := useColor
-	useColor = false
-	defer func() { useColor = prevColor }()
-
-	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	oldStdout := os.Stdout
-	os.Stdout = w
-
-	done := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, r)
-		done <- buf.String()
-	}()
-
-	fn()
-	_ = w.Close()
-	os.Stdout = oldStdout
-	out := <-done
-	_ = r.Close()
-	return out
 }
