@@ -1,2 +1,5 @@
 # everything in the archive folder is ignored
 archive/*
+
+# ignore all builds in the /bin folder
+bin/*
