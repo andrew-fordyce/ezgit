@@ -1,0 +1,12 @@
+[package]
+name = "gitstatus"
+version = "0.1.0"
+edition = "2021"
+
+# Size-tuned release build. Remove this section for Cargo's default release settings.
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
