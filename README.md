@@ -2,7 +2,7 @@
 
 ### early draft state, i dont recommend using it just yet
 
-Friendly, interactive git helpers. Go ports of the PowerShell NonsenseScripts commands.
+Friendly, interactive git helpers. Go ports of my PowerShell scripts.
 
     ezgit status     where you are: branch, remote comparison, changed files, next steps
     ezgit add        pick which changed files to stage by ID  (1-3 5 ^2, a, n, s, q)
