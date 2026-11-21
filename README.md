@@ -1,5 +1,7 @@
 # ezgit
 
+### early draft state, i dont recommend using it just yet
+
 Friendly, interactive git helpers. Go ports of the PowerShell NonsenseScripts commands.
 
     ezgit status     where you are: branch, remote comparison, changed files, next steps
