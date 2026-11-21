@@ -31,7 +31,16 @@ func initTempRepo(t *testing.T) string {
 	run("add", "README.md")
 	run("commit", "-m", "initial commit")
 
-	t.Chdir(dir)
+	origDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = os.Chdir(origDir)
+	})
 	return dir
 }
 
