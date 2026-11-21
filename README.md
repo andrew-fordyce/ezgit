@@ -28,3 +28,4 @@ Write `func runSomething(o options) int` in its own file and add one line to `co
 
 Environment: NO_COLOR disables colour; NONSENSE_NO_TIPS hides the explanatory tips.
 
+currently  in 0.1.0 state
