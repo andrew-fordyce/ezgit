@@ -199,7 +199,7 @@ func main() {
 			os.Exit(2)
 		}
 	}
-	useColor = os.Getenv("NO_COLOR") == "" && enableColor()
+	// useColor = os.Getenv("NO_COLOR") == "" && enableColor()
 
 	// 1. preflight: git exists and we're inside a working tree
 	if _, err := exec.LookPath("git"); err != nil {
