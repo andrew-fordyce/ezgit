@@ -18,8 +18,8 @@ type command struct {
 
 // To add a command: write a `func runSomething(o options) int` in its own file and list it here.
 var commands = []command{
-	{"status", "show your branch, how it compares to the remote, and which files changed", runStatus},
-	{"add", "choose which changed files to stage, by ID", runAdd},
+	{name:"status", summary:"show your branch, how it compares to the remote, and which files changed", run:runStatus},
+	{name:"add",    summary:"choose which changed files to stage, by ID",                               run:runAdd},
 }
 
 func usage(w io.Writer) {
