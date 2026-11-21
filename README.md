@@ -25,3 +25,4 @@ Friendly, interactive git helpers. Go ports of the PowerShell NonsenseScripts co
 Write `func runSomething(o options) int` in its own file and add one line to `commands` in main.go.
 
 Environment: NO_COLOR disables colour; NONSENSE_NO_TIPS hides the explanatory tips.
+
