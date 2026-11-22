@@ -27,6 +27,7 @@ var commands = []command{
 	{"add", "choose which changed files to stage, by ID", runAdd},
 	{"commit", "commit the staged changes (also --amend and --fixup)", runCommit},
 	{"merge", "check whether you're behind the remote and merge the updates", runMerge},
+	{"branch", "interactively create a new branch from an existing one", runBranch},
 }
 
 func usage(w io.Writer) {
