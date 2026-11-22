@@ -7,6 +7,8 @@ package main
 
 import (
 	"bufio"
+	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -63,23 +65,53 @@ func fail(msg string, guidance ...string) {
 
 // ---------- running git ----------
 
-// git runs a git command, inside repo `root` when given, and returns its captured output and
-// whether it exited successfully. Errors are values in Go: we check the second result instead of
-// $LASTEXITCODE. Note the output is returned even when git exits non-zero.
-func git(root string, args ...string) (string, bool) {
+// gitCode runs a git command, inside repo `root` when given, and returns its captured output and
+// its exit code (-1 if git could not be run at all). Some git commands use the exit code to say
+// something meaningful (for example merge-base --is-ancestor: 0 = yes, 1 = no, other = error).
+func gitCode(root string, args ...string) (string, int) {
 	if root != "" {
 		args = append([]string{"-C", root}, args...)
 	}
 	out, err := exec.Command("git", args...).Output()
-	return string(out), err == nil
+	if err == nil {
+		return string(out), 0
+	}
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		return string(out), exitErr.ExitCode()
+	}
+	return string(out), -1
+}
+
+// git runs a git command, inside repo `root` when given, and returns its captured output and
+// whether it exited successfully. Errors are values in Go: we check the second result instead of
+// $LASTEXITCODE. Note the output is returned even when git exits non-zero.
+func git(root string, args ...string) (string, bool) {
+	out, code := gitCode(root, args...)
+	return out, code == 0
 }
 
 // runGit runs a git command inside `root` and lets its output go straight to the terminal (use
-// this when the person should see what git says, e.g. for `git add` or `git stash`).
+// this when the person should see what git says, e.g. for `git add` or `git commit`). Git also
+// inherits our keyboard, so anything that needs an editor can open one.
 func runGit(root string, args ...string) bool {
+	return runGitEnv(root, nil, args...)
+}
+
+// runGitQuiet is runGit with git's normal output thrown away (error messages are still shown).
+func runGitQuiet(root string, args ...string) bool {
 	cmd := exec.Command("git", append([]string{"-C", root}, args...)...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdin, cmd.Stderr = os.Stdin, os.Stderr
+	return cmd.Run() == nil
+}
+
+// runGitEnv is runGit with extra environment variables (KEY=value) set for that one command.
+func runGitEnv(root string, extraEnv []string, args ...string) bool {
+	cmd := exec.Command("git", append([]string{"-C", root}, args...)...)
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	if len(extraEnv) > 0 {
+		cmd.Env = append(os.Environ(), extraEnv...) // for duplicate names, the last one wins
+	}
 	return cmd.Run() == nil
 }
 
@@ -380,10 +412,100 @@ func resolveSelection(input string, limit int) (ids []int, reason string) {
 	return ids, ""
 }
 
+// ---------- small text helpers ----------
+
+// nonEmptyLines splits text into lines and drops blank ones.
+func nonEmptyLines(s string) []string {
+	var out []string
+	for _, l := range strings.Split(s, "\n") {
+		if l = strings.TrimRight(l, "\r"); strings.TrimSpace(l) != "" {
+			out = append(out, l)
+		}
+	}
+	return out
+}
+
+// truncate shortens text to at most `limit` characters, ending in "..." (like a table MaxWidth).
+func truncate(s string, limit int) string {
+	r := []rune(s)
+	switch {
+	case len(r) <= limit:
+		return s
+	case limit == 0:
+		return ""
+	case limit < 4:
+		return string(r[:limit])
+	}
+	return string(r[:limit-3]) + "..."
+}
+
+// hasPrefixFold reports whether s starts with prefix, ignoring case (like PowerShell's -like).
+func hasPrefixFold(s, prefix string) bool {
+	return len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix)
+}
+
+// nameStatus maps a `git diff --name-status` code (A, M, D, R100, ...) to a label and colour.
+// Unlike the two-letter status code, this describes a diff, so colour shows the kind of change.
+func nameStatus(code string) (label, color string) {
+	if code == "" {
+		return "Changed", "Gray"
+	}
+	switch code[0] {
+	case 'A':
+		return "Added", "Green"
+	case 'M':
+		return "Modified", "Yellow"
+	case 'D':
+		return "Deleted", "Red"
+	case 'R':
+		return "Renamed", "Green"
+	case 'C':
+		return "Copied", "Green"
+	case 'T':
+		return "TypeChange", "Yellow"
+	}
+	return "Changed", "Gray"
+}
+
 // ---------- commands ----------
 
-// options are the flags every command understands.
+// options are the settings every command shares.
 type options struct{ noTip bool }
+
+// flagsFor starts a flag set for a command. Every command understands --no-tip; a command adds its
+// own flags to the returned set before calling parseFlags.
+func flagsFor(name string) (*flag.FlagSet, *options) {
+	o := &options{noTip: os.Getenv("NONSENSE_NO_TIPS") != ""}
+	fs := flag.NewFlagSet("ezgit "+name, flag.ContinueOnError)
+	fs.BoolVar(&o.noTip, "no-tip", o.noTip, "hide the explanatory tip")
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "usage: %s [options]\n\noptions:\n", fs.Name())
+		fs.VisitAll(func(f *flag.Flag) {
+			flagText := "--" + f.Name
+			if len(f.Name) == 1 {
+				flagText = "-" + f.Name
+			}
+			fmt.Fprintf(fs.Output(), "  %-18s %s\n", flagText, f.Usage)
+		})
+	}
+	return fs, o
+}
+
+// parseFlags parses a command's arguments. ok is false when the program should stop now with the
+// returned exit code (the person asked for --help, or typed something we don't understand).
+func parseFlags(fs *flag.FlagSet, args []string) (code int, ok bool) {
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return 0, false
+		}
+		return 2, false
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintf(os.Stderr, "%s: unexpected argument %q\n", fs.Name(), fs.Arg(0))
+		return 2, false
+	}
+	return 0, true
+}
 
 // showTip prints an explanatory tip unless tips are switched off (--no-tip or NONSENSE_NO_TIPS).
 // The PowerShell version shows each tip once per session; a standalone program has no session,

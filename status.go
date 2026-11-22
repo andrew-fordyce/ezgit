@@ -22,11 +22,16 @@ func statusTable(title string, rows []entry) {
 	table(title, []string{"Status", "Path"}, cells, false)
 }
 
-func runStatus(o options) int {
+func runStatus(args []string) int {
+	fs, o := flagsFor("status")
+	if code, ok := parseFlags(fs, args); !ok {
+		return code
+	}
+
 	// 1. preflight: git exists and we're inside a working tree
 	root := preflight()
 
-	showTip(o, "Shows where you are right now: your branch, how it compares to the remote, and which files have changed.\n"+
+	showTip(*o, "Shows where you are right now: your branch, how it compares to the remote, and which files have changed.\n"+
 		"Git tracks changes in three places - the working tree (files on disk), the index (what's staged for the next commit), and commits.\n"+
 		"The tables below split files the same way 'git status' does. Run 'whatdo' to also list every command in this toolbox.")
 
@@ -190,26 +195,26 @@ func runStatus(o options) int {
 	add := func(cmd, why string) { sug = append(sug, suggestion{cmd, why}) }
 
 	if detached {
-		add("git switch", "get back onto a real branch before you lose track of this work")
+		add("gitswitch", "get back onto a real branch before you lose track of this work")
 	}
 	if conflictCount > 0 {
-		add("git merge", fmt.Sprintf("resolve the %d conflicted file(s) and finish the merge", conflictCount))
+		add("gitmerge", fmt.Sprintf("resolve the %d conflicted file(s) and finish the merge", conflictCount))
 	}
 	if dirtyCount > 0 {
 		if unstagedCount > 0 {
-			add("git add", fmt.Sprintf("choose which %d unstaged file(s) to put into the next commit", unstagedCount))
+			add("gitadd", fmt.Sprintf("choose which %d unstaged file(s) to put into the next commit", unstagedCount))
 		}
 		if stagedCount > 0 {
-			add("git commit", fmt.Sprintf("commit the %d file(s) already staged in the index", stagedCount))
-			// add("git unstage", "take staged file(s) back out of the index, keeping your edits on disk")
+			add("gitcommit", fmt.Sprintf("commit the %d file(s) already staged in the index", stagedCount))
+			add("gitunstage", "take staged file(s) back out of the index, keeping your edits on disk")
 		}
-		add("git diff", "review exactly what changed, line by line, before committing")
-		add("git stash", "shelve these changes to come back to later")
-		// add("git undo", "discard changes and return a file (or everything) to a clean state")
+		add("gitdiff", "review exactly what changed, line by line, before committing")
+		add("gitstash", "shelve these changes to come back to later")
+		add("gitundo", "discard changes and return a file (or everything) to a clean state")
 	} else {
-		add("git branch", "start a new branch for a fresh piece of work")
-		add("git switch", "jump to another branch")
-		add("git log", "review the recent commit history on this branch")
+		add("gitbranch", "start a new branch for a fresh piece of work")
+		add("gitswitch", "jump to another branch")
+		add("gitlog", "review the recent commit history on this branch")
 	}
 	if !detached {
 		if hasRemote {
@@ -218,13 +223,29 @@ func runStatus(o options) int {
 		if !hasUpstream {
 			add("git push -u "+remoteName+" HEAD", "publish this branch so it's backed up and visible to the team")
 		} else if behind > 0 && conflictCount == 0 {
-			add("git merge", fmt.Sprintf("pull in %d upstream commit(s) and resolve any drift", behind))
+			add("gitmerge", fmt.Sprintf("pull in %d upstream commit(s) and resolve any drift", behind))
 		} else if ahead > 0 && dirtyCount == 0 {
 			add("git push", fmt.Sprintf("upload your %d local commit(s) to the remote", ahead))
 		}
 	}
 	if stashCount > 0 {
-		add("git stash", fmt.Sprintf("you have %d stash(es) waiting - view, apply, or drop them", stashCount))
+		add("gitstash", fmt.Sprintf("you have %d stash(es) waiting - view, apply, or drop them", stashCount))
+	}
+
+	// a dbt project between here and the repo root? then suggest the dbt entry point
+	rootNorm := norm(root)
+	if dir, err := os.Getwd(); err == nil {
+		for {
+			if _, err := os.Stat(filepath.Join(dir, "dbt_project.yml")); err == nil {
+				add("dbtrun", "run dbt models by picking them from a list instead of typing --select")
+				break
+			}
+			parent := filepath.Dir(dir)
+			if norm(dir) == rootNorm || parent == dir {
+				break
+			}
+			dir = parent
+		}
 	}
 
 	fmt.Println()

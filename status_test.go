@@ -12,7 +12,7 @@ func TestRunStatus_CleanRepo(t *testing.T) {
 
 	var code int
 	out := captureOutput(t, func() {
-		code = runStatus(options{noTip: true})
+		code = runStatus([]string{"--no-tip"})
 	})
 
 	if code != 0 {
@@ -43,7 +43,7 @@ func TestRunStatus_BucketsStagedUnstagedAndUntracked(t *testing.T) {
 
 	var code int
 	out := captureOutput(t, func() {
-		code = runStatus(options{noTip: true})
+		code = runStatus([]string{"--no-tip"})
 	})
 
 	if code != 0 {
@@ -92,7 +92,7 @@ func TestRunStatus_AheadOfUpstream(t *testing.T) {
 
 	var code int
 	out := captureOutput(t, func() {
-		code = runStatus(options{noTip: true})
+		code = runStatus([]string{"--no-tip"})
 	})
 
 	if code != 0 {

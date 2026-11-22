@@ -50,7 +50,7 @@ func TestRunAdd_NoUnstagedChanges(t *testing.T) {
 
 	var code int
 	out := captureOutput(t, func() {
-		code = runAdd(options{noTip: true})
+		code = runAdd([]string{"--no-tip"})
 	})
 
 	if code != 0 {
@@ -73,7 +73,7 @@ func TestRunAdd_StagesSelectedIDsWithExclusions(t *testing.T) {
 
 	var code int
 	out := captureOutput(t, func() {
-		code = runAdd(options{noTip: true})
+		code = runAdd([]string{"--no-tip"})
 	})
 
 	if code != 0 {
@@ -104,7 +104,7 @@ func TestRunAdd_StageAllWithA(t *testing.T) {
 
 	var code int
 	captureOutput(t, func() {
-		code = runAdd(options{noTip: true})
+		code = runAdd([]string{"--no-tip"})
 	})
 
 	if code != 0 {
@@ -127,7 +127,7 @@ func TestRunAdd_QuitLeavesUnstaged(t *testing.T) {
 
 	var code int
 	captureOutput(t, func() {
-		code = runAdd(options{noTip: true})
+		code = runAdd([]string{"--no-tip"})
 	})
 
 	if code != 0 {
@@ -149,7 +149,7 @@ func TestRunAdd_StashSwitch(t *testing.T) {
 
 	var code int
 	captureOutput(t, func() {
-		code = runAdd(options{noTip: true})
+		code = runAdd([]string{"--no-tip"})
 	})
 
 	if code != 0 {

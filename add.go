@@ -82,8 +82,9 @@ func untrackedStat(root, fullPath string) (numstat, bool) {
 	return toNumstat(parts[0], parts[1]), true
 }
 
-// stashPush runs `git stash push` (the 's' switch). Returns false if git failed.
-func stashPush(root string, includeUntracked bool, message string) bool {
+// stashPush runs `git stash push` (the 's' switch). Returns false if git failed. With quiet, git's
+// own "Saved working directory..." line is not shown (that is how `merge` uses it).
+func stashPush(root string, includeUntracked, quiet bool, message string) bool {
 	args := []string{"stash", "push"}
 	if includeUntracked {
 		args = append(args, "-u")
@@ -92,7 +93,11 @@ func stashPush(root string, includeUntracked bool, message string) bool {
 		args = append(args, "-m", message)
 	}
 	say("DarkGray", "Stashing changes: "+displayCommand(args))
-	if !runGit(root, args...) {
+	run := runGit
+	if quiet {
+		run = runGitQuiet
+	}
+	if !run(root, args...) {
 		fmt.Println()
 		say("Red", "Error: Failed to create stash. Aborting.")
 		fmt.Println()
@@ -107,11 +112,16 @@ func formatSeconds(d time.Duration) string {
 	return strconv.FormatFloat(math.Round(d.Seconds()*100)/100, 'f', -1, 64)
 }
 
-func runAdd(o options) int {
+func runAdd(args []string) int {
+	fs, o := flagsFor("add")
+	if code, ok := parseFlags(fs, args); !ok {
+		return code
+	}
+
 	// 1. preflight and tip
 	root := preflight()
 
-	showTip(o, "Staging tells Git which changes you want included in your next commit.\n"+
+	showTip(*o, "Staging tells Git which changes you want included in your next commit.\n"+
 		"This function shows your unstaged changes and lets you choose which ones to stage.\n"+
 		"To take staged files back out instead (your edits stay on disk), use gitunstage.")
 
@@ -279,7 +289,7 @@ func runAdd(o options) int {
 	}
 
 	if is("s") {
-		if !stashPush(root, true, "gitadd stash") {
+		if !stashPush(root, true, false, "gitadd stash") {
 			fmt.Println()
 			say("Red", "Error: Failed to stash local changes. Aborting.")
 			fmt.Println()

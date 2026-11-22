@@ -1,7 +1,11 @@
 // ezgit - easy git. Friendly, interactive wrappers around everyday git commands.
 //
-//	ezgit status [--no-tip]
-//	ezgit add    [--no-tip]
+//	ezgit status
+//	ezgit add
+//	ezgit commit [--amend | --fixup] [--fetch] [--branch-target X] [-n N]
+//	ezgit merge  [--fetch] [--branch-target X]
+//
+// Every command also accepts --no-tip and --help.
 package main
 
 import (
@@ -13,23 +17,26 @@ import (
 type command struct {
 	name    string
 	summary string
-	run     func(options) int // returns the process exit code
+	run     func(args []string) int // gets the arguments after the command name; returns the exit code
 }
 
-// To add a command: write a `func runSomething(o options) int` in its own file and list it here.
+// To add a command: write a `func runSomething(args []string) int` in its own file and list it here.
 var commands = []command{
-	{name:"status", summary:"show your branch, how it compares to the remote, and which files changed", run:runStatus},
-	{name:"add",    summary:"choose which changed files to stage, by ID",                               run:runAdd},
+	{"status", "show your branch, how it compares to the remote, and which files changed", runStatus},
+	{"add", "choose which changed files to stage, by ID", runAdd},
+	{"commit", "commit the staged changes (also --amend and --fixup)", runCommit},
+	{"merge", "check whether you're behind the remote and merge the updates", runMerge},
 }
 
 func usage(w io.Writer) {
-	fmt.Fprintln(w, "usage: ezgit <command> [--no-tip]")
+	fmt.Fprintln(w, "usage: ezgit <command> [options]")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "commands:")
 	for _, c := range commands {
 		fmt.Fprintf(w, "  %-8s %s\n", c.name, c.summary)
 	}
 	fmt.Fprintln(w)
+	fmt.Fprintln(w, "run `ezgit <command> --help` for a command's options")
 	fmt.Fprintln(w, "environment: NO_COLOR turns colours off; NONSENSE_NO_TIPS hides the explanatory tips")
 }
 
@@ -40,32 +47,13 @@ func main() {
 		return
 	}
 
-	var chosen *command
-	for i := range commands {
-		if commands[i].name == args[0] {
-			chosen = &commands[i]
+	for _, c := range commands {
+		if c.name == args[0] {
+			useColor = os.Getenv("NO_COLOR") == "" && enableColor()
+			os.Exit(c.run(args[1:]))
 		}
 	}
-	if chosen == nil {
-		fmt.Fprintf(os.Stderr, "ezgit: unknown command %q\n\n", args[0])
-		usage(os.Stderr)
-		os.Exit(2)
-	}
-
-	opts := options{noTip: os.Getenv("NONSENSE_NO_TIPS") != ""}
-	for _, arg := range args[1:] {
-		switch arg {
-		case "--no-tip":
-			opts.noTip = true
-		case "-h", "--help":
-			fmt.Printf("usage: ezgit %s [--no-tip]\n  %s\n", chosen.name, chosen.summary)
-			return
-		default:
-			fmt.Fprintf(os.Stderr, "ezgit %s: unknown option %q\n", chosen.name, arg)
-			os.Exit(2)
-		}
-	}
-
-	useColor = os.Getenv("NO_COLOR") == "" && enableColor()
-	os.Exit(chosen.run(opts))
+	fmt.Fprintf(os.Stderr, "ezgit: unknown command %q\n\n", args[0])
+	usage(os.Stderr)
+	os.Exit(2)
 }
