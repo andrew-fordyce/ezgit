@@ -23,6 +23,7 @@ type command struct {
 // To add a command: write a `func runSomething(args []string) int` in its own file and list it here.
 var commands = []command{
 	{"status", "show your branch, how it compares to the remote, and which files changed", runStatus},
+	{"switch", "interactively switch to a local or remote branch", runSwitch},
 	{"add", "choose which changed files to stage, by ID", runAdd},
 	{"commit", "commit the staged changes (also --amend and --fixup)", runCommit},
 	{"merge", "check whether you're behind the remote and merge the updates", runMerge},

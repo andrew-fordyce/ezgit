@@ -474,9 +474,13 @@ type options struct{ noTip bool }
 
 // flagsFor starts a flag set for a command. Every command understands --no-tip; a command adds its
 // own flags to the returned set before calling parseFlags.
-func flagsFor(name string) (*flag.FlagSet, *options) {
+func flagsFor(name string, usageArgs ...string) (*flag.FlagSet, *options) {
 	o := &options{noTip: os.Getenv("NONSENSE_NO_TIPS") != ""}
-	fs := flag.NewFlagSet("ezgit "+name, flag.ContinueOnError)
+	commandName := "ezgit " + name
+	if len(usageArgs) > 0 {
+		commandName += " " + strings.Join(usageArgs, " ")
+	}
+	fs := flag.NewFlagSet(commandName, flag.ContinueOnError)
 	fs.BoolVar(&o.noTip, "no-tip", o.noTip, "hide the explanatory tip")
 	fs.Usage = func() {
 		fmt.Fprintf(fs.Output(), "usage: %s [options]\n\noptions:\n", fs.Name())
@@ -505,6 +509,22 @@ func parseFlags(fs *flag.FlagSet, args []string) (code int, ok bool) {
 		return 2, false
 	}
 	return 0, true
+}
+
+// parseFlagsPos parses flags plus up to max positional arguments.
+func parseFlagsPos(fs *flag.FlagSet, args []string, max int) (pos []string, code int, ok bool) {
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil, 0, false
+		}
+		return nil, 2, false
+	}
+	if fs.NArg() > max {
+		fmt.Fprintf(os.Stderr, "%s: unexpected argument %q\n", fs.Name(), fs.Arg(max))
+		return nil, 2, false
+	}
+	pos = append(pos, fs.Args()...)
+	return pos, 0, true
 }
 
 // showTip prints an explanatory tip unless tips are switched off (--no-tip or NONSENSE_NO_TIPS).
