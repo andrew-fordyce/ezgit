@@ -99,4 +99,60 @@ func runBranch(args []string) int {
 			return 1
 		}
 	}
+
+ //    #region 3 Select branch
+ //    # List branches and pick a base, handle detached head state
+ //    $isDetached = -not (git symbolic-ref --quiet --short HEAD 2>$null)
+ //    Write-Host "Checking branches: git branch -a" -ForegroundColor DarkGray
+ //    $rawBranches = git branch -a --format="%(refname:short)`t%(HEAD)`t%(committerdate:format:%Y-%m-%d %H:%M:%S)`t%(symref)"
+
+ //    $branches = @()
+ //    $seen = @{}
+ //    foreach ($line in $rawBranches) {
+ //        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+ //        $parts = $line -split "`t", 4
+ //        if ($parts.Count -lt 4) { continue }
+
+ //        $refName = $parts[0].Trim()
+ //        $isHead = $parts[1].Trim() -eq '*'
+ //        $dateText = $parts[2].Trim()
+ //        $symref = $parts[3].Trim()
+
+ //        $commitDate = [datetime]::MinValue
+ //        if (-not [datetime]::TryParseExact(
+ //                $dateText, 'yyyy-MM-dd HH:mm:ss',
+ //                [System.Globalization.CultureInfo]::InvariantCulture,
+ //                [System.Globalization.DateTimeStyles]::None,
+ //                [ref]$commitDate)) {
+ //            $commitDate = Get-Date "1900-01-01"
+ //        }
+
+ //        # skip the pseudo-entry Git reports when HEAD is detached
+ //        if ($refName -like '(HEAD detached at *' -or $refName -eq '(HEAD detached)') {
+ //            continue
+ //        }
+
+ //        # skip symbolic refs like origin/HEAD, regardless of how their short name renders
+ //        if (-not [string]::IsNullOrWhiteSpace($symref)) { continue }
+
+ //        # de-dupe: prefer showing one entry per branch name, local or remote, origin/* is collapsed on to local names
+ //        $displayName = $refName -replace '^origin/', ''
+ //        if ($seen.ContainsKey($displayName)) { continue }
+ //        $seen[$displayName] = $true
+
+ //        $branches += [PSCustomObject]@{
+ //            Ref        = $refName
+ //            Display    = $displayName
+ //            IsHead     = $isHead
+ //            Type       = if ($refName -like 'origin/*') { "Remote" } else { "Local" }
+ //            CommitDate = $commitDate
+ //        }
+ //    }
+
+ //    if (@($branches).Count -eq 0) {
+ //        Write-Host ""
+ //        Write-Host "Error: No branches found. Aborting." -ForegroundColor Red
+ //        Write-Host ""
+ //        return
+ //    }
 }
