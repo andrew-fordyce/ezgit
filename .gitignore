@@ -2,4 +2,4 @@
 archive/*
 
 # ignore all builds in the /bin folder
-bin/*
+# bin/*
