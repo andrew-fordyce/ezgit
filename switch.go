@@ -211,8 +211,7 @@ func runSwitch(args []string) int {
 	searching := strings.TrimSpace(filter) != ""
 
 	showTip(*o, "Switching branches changes which version of the code you're working on; "+
-		"your commits stay safe on their own branch.\nThis function lists your recent or matching "+
-		"branches, and switches you to the one you pick.")
+		"your commits stay safe on their own branch.\nThis function lists your recent or matching branches, and switches you to the one you pick.")
 
 	// --- find branches, show them and ask which to switch to; repeats if the filter is changed
 	var branches []branchRef

@@ -412,6 +412,13 @@ func resolveSelection(input string, limit int) (ids []int, reason string) {
 	return ids, ""
 }
 
+func expandAllSelection(input string, limit int) string {
+	if strings.EqualFold(strings.TrimSpace(input), "a") {
+		return fmt.Sprintf("1-%d", limit)
+	}
+	return input
+}
+
 // ---------- small text helpers ----------
 
 // nonEmptyLines splits text into lines and drops blank ones.

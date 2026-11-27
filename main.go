@@ -2,6 +2,15 @@
 //
 //	ezgit status
 //	ezgit add
+//	ezgit unstage
+//	ezgit diff [branch-target] [text-filter]
+//	ezgit log [revision-target] [text-filter]
+//	ezgit branch [name]
+//	ezgit rename [new-name]
+//	ezgit prune
+//	ezgit stash
+//	ezgit clean
+//	ezgit undo
 //	ezgit commit [--amend | --fixup] [--fetch] [--branch-target X] [-n N]
 //	ezgit merge  [--fetch] [--branch-target X]
 //
@@ -24,10 +33,18 @@ type command struct {
 var commands = []command{
 	{"status", "show your branch, how it compares to the remote, and which files changed", runStatus},
 	{"switch", "interactively switch to a local or remote branch", runSwitch},
+	{"branch", "create and switch to a new branch", runBranch},
+	{"rename", "rename a local branch", runRename},
+	{"prune", "delete selected local branches already merged into trunk", runPrune},
 	{"add", "choose which changed files to stage, by ID", runAdd},
+	{"unstage", "choose which staged files to remove from the index", runUnstage},
+	{"diff", "choose changed files and show their patches", runDiff},
+	{"log", "browse commits or a file's history", runLog},
+	{"stash", "create and manage Git stashes", runStash},
+	{"clean", "preview and remove untracked files", runClean},
+	{"undo", "restore files, roll back a file, or undo a commit", runUndo},
 	{"commit", "commit the staged changes (also --amend and --fixup)", runCommit},
 	{"merge", "check whether you're behind the remote and merge the updates", runMerge},
-	{"branch", "interactively create a new branch from an existing one", runBranch},
 }
 
 func usage(w io.Writer) {
