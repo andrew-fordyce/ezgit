@@ -535,3 +535,27 @@ func showTip(o options, text string) {
 		say("Blue", text)
 	}
 }
+
+
+func pushStash(root string, include, keep bool, message string, paths []string) bool {
+	a := []string{"stash", "push"}
+	if include {
+		a = append(a, "-u")
+	}
+	if keep {
+		a = append(a, "--keep-index")
+	}
+	if strings.TrimSpace(message) != "" {
+		a = append(a, "-m", message)
+	}
+	if len(paths) > 0 {
+		a = append(a, "--")
+		a = append(a, paths...)
+	}
+	say("DarkGray", "Stashing changes: "+displayCommand(a))
+	if !runGit(root, a...) {
+		return false
+	}
+	say("Green", "Stash created successfully.")
+	return true
+}
