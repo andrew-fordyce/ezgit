@@ -1,10 +1,5 @@
 start with one small working command rather than the data structures. Data structures are hard to design on their own, because you don't know which fields you'll need until a command needs them. ezgit grew the same way: each command came first, and shared helpers were pulled out once a second command needed the same thing.
-Before you start
 
-    Keep the reference safe. All the work is still uncommitted. Commit it to a branch such as reference, then build your version in a new folder or on a fresh branch, so you can compare without overwriting either.
-    Install Go. The direct download was blocked here, but winget and choco are both available on this machine, so try winget install GoLang.Go.
-
-A suggested order
 1. The minimum that runs
 
     Create go.mod and main.go: read the first word after ezgit and call the matching function.
@@ -12,7 +7,7 @@ A suggested order
     Add preflight() to check that you're inside a repository.
     You'll learn packages, functions that return two values, how Go handles errors, and os/exec for running programs.
 
-2. Your first data structure: ezgit status
+2. first data structure: ezgit status
 
     Create the entry struct, and parseStatus to read git status --porcelain=v1 -z.
     Add coloured output (say), then the table renderer.
@@ -40,20 +35,6 @@ A suggested order
     Then build merge, cherry-pick, rebase and reflog.
 
 9. Last and hardest: hunks and patches for add -p and unstage -p (gitpatch.go and hunkpick.go).
-How to use the reference
-
-    Use the tests as the specification. For each command, read its test file to see what it should do, write your own version, and look at the reference only when you're stuck.
-    Read the comment at the top of each file first. Each one explains what the file is for.
-    Try the Git command in a terminal before writing Go. For example, run git status --porcelain=v1 -z and look at what it prints. Much of the work is understanding Git's output, not Go.
-    Pull out a helper when you need it a second time. Once the second command needs the same code, move it into a shared file.
-    Organise your folders from day one. You're starting fresh, so you can use the clearer layout from the folder-structure options without restructuring later.
-
-Task completed:
-I'd start with one small working command rather than the data structures, because you only find out which fields you need when a command needs them. ezgit grew that way: each command came first, and shared helpers were pulled out once a second command needed the same code.
-Before you start
-
-    All the reference work is still uncommitted. Commit it to a branch such as reference, then build your version in a new folder or on a fresh branch.
-    Install Go. The direct download was blocked here, but try winget install GoLang.Go.
 
 Suggested order
 
@@ -67,10 +48,3 @@ Suggested order
     Operations that can stop halfway: detecting a merge or rebase in progress and the conflict advice, then merge, cherry-pick, rebase, reflog.
     Last and hardest: hunks and patches for add -p and unstage -p.
 
-How to use the reference
-
-    Use each command's tests as its specification, and only look at the reference code when you're stuck.
-    Read the comment at the top of each file first; each one explains what the file is for.
-    Run the Git command in a terminal and look at its output before writing any Go.
-    Move code into a shared file once a second command needs it.
-    Since you're starting fresh, use the clearer folder layout from the start.
