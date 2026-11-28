@@ -1,5 +1,8 @@
+<!-- Completed items are commented out below. -->
+
 start with one small working command rather than the data structures. Data structures are hard to design on their own, because you don't know which fields you'll need until a command needs them. ezgit grew the same way: each command came first, and shared helpers were pulled out once a second command needed the same thing.
 
+<!--
 1. The minimum that runs
 
     Create go.mod and main.go: read the first word after ezgit and call the matching function.
@@ -19,14 +22,16 @@ start with one small working command rather than the data structures. Data struc
     That grammar is an ideal exercise: small, tricky and fully testable. Copy its tests from common_test.go first, then write code until they pass.
 
 4. Flags: flagsFor, parseFlags and --no-tip.
+-->
+
 5. Commands that only read
 
     diff: fileDelta and numstat.
     log: reading commits and dates.
-    branch and switch: gitRef and for-each-ref.
+    <!-- branch and switch: gitRef and for-each-ref. -->
     show and blame.
 
-6. Commands that change files: commit, unstage, stash, clean, rm, mv, undo.
+6. Commands that change files: <!-- commit, --> unstage, stash, clean, rm, mv, undo.
 7. Remotes: init, clone, remote, tag, fetch, pull, push.
 8. Operations that can stop halfway
 
@@ -38,12 +43,14 @@ start with one small working command rather than the data structures. Data struc
 
 Suggested order
 
+<!--
     The minimum that runs: main.go picks a command, a git() helper runs Git, and preflight() checks you're inside a repository.
     First data structure, ezgit status: the entry struct and parseStatus, coloured output, then tables. Write your first table-driven test.
     Keyboard input, ezgit add: prompt, then the "1-3 5 ^2" grammar. It's small, tricky and fully testable, so copy its tests first and write code until they pass.
     Flags: flagsFor, parseFlags and --no-tip.
-    Commands that only read: diff, log, branch/switch, show, blame.
-    Commands that change files: commit, unstage, stash, clean, rm, mv, undo.
+-->
+    Commands that only read: diff, log, <!-- branch/switch, --> show, blame.
+    Commands that change files: <!-- commit, --> unstage, stash, clean, rm, mv, undo.
     Remotes: init, clone, remote, tag, fetch, pull, push.
     Operations that can stop halfway: detecting a merge or rebase in progress and the conflict advice, then merge, cherry-pick, rebase, reflog.
     Last and hardest: hunks and patches for add -p and unstage -p.
