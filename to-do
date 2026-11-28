@@ -1,0 +1,76 @@
+start with one small working command rather than the data structures. Data structures are hard to design on their own, because you don't know which fields you'll need until a command needs them. ezgit grew the same way: each command came first, and shared helpers were pulled out once a second command needed the same thing.
+Before you start
+
+    Keep the reference safe. All the work is still uncommitted. Commit it to a branch such as reference, then build your version in a new folder or on a fresh branch, so you can compare without overwriting either.
+    Install Go. The direct download was blocked here, but winget and choco are both available on this machine, so try winget install GoLang.Go.
+
+A suggested order
+1. The minimum that runs
+
+    Create go.mod and main.go: read the first word after ezgit and call the matching function.
+    Write a git() helper that runs Git and returns its output and whether it worked, as in common.go.
+    Add preflight() to check that you're inside a repository.
+    You'll learn packages, functions that return two values, how Go handles errors, and os/exec for running programs.
+
+2. Your first data structure: ezgit status
+
+    Create the entry struct, and parseStatus to read git status --porcelain=v1 -z.
+    Add coloured output (say), then the table renderer.
+    Write your first table-driven test. The parser is a pure function, so it's the easiest thing to test.
+
+3. Keyboard input: ezgit add
+
+    Add prompt, then resolveSelection, which turns "1-3 5 ^2" into a list of IDs.
+    That grammar is an ideal exercise: small, tricky and fully testable. Copy its tests from common_test.go first, then write code until they pass.
+
+4. Flags: flagsFor, parseFlags and --no-tip.
+5. Commands that only read
+
+    diff: fileDelta and numstat.
+    log: reading commits and dates.
+    branch and switch: gitRef and for-each-ref.
+    show and blame.
+
+6. Commands that change files: commit, unstage, stash, clean, rm, mv, undo.
+7. Remotes: init, clone, remote, tag, fetch, pull, push.
+8. Operations that can stop halfway
+
+    Detect a merge, rebase, cherry-pick or revert in progress (gitstate.go).
+    Add the conflict advice (conflicts.go).
+    Then build merge, cherry-pick, rebase and reflog.
+
+9. Last and hardest: hunks and patches for add -p and unstage -p (gitpatch.go and hunkpick.go).
+How to use the reference
+
+    Use the tests as the specification. For each command, read its test file to see what it should do, write your own version, and look at the reference only when you're stuck.
+    Read the comment at the top of each file first. Each one explains what the file is for.
+    Try the Git command in a terminal before writing Go. For example, run git status --porcelain=v1 -z and look at what it prints. Much of the work is understanding Git's output, not Go.
+    Pull out a helper when you need it a second time. Once the second command needs the same code, move it into a shared file.
+    Organise your folders from day one. You're starting fresh, so you can use the clearer layout from the folder-structure options without restructuring later.
+
+Task completed:
+I'd start with one small working command rather than the data structures, because you only find out which fields you need when a command needs them. ezgit grew that way: each command came first, and shared helpers were pulled out once a second command needed the same code.
+Before you start
+
+    All the reference work is still uncommitted. Commit it to a branch such as reference, then build your version in a new folder or on a fresh branch.
+    Install Go. The direct download was blocked here, but try winget install GoLang.Go.
+
+Suggested order
+
+    The minimum that runs: main.go picks a command, a git() helper runs Git, and preflight() checks you're inside a repository.
+    First data structure, ezgit status: the entry struct and parseStatus, coloured output, then tables. Write your first table-driven test.
+    Keyboard input, ezgit add: prompt, then the "1-3 5 ^2" grammar. It's small, tricky and fully testable, so copy its tests first and write code until they pass.
+    Flags: flagsFor, parseFlags and --no-tip.
+    Commands that only read: diff, log, branch/switch, show, blame.
+    Commands that change files: commit, unstage, stash, clean, rm, mv, undo.
+    Remotes: init, clone, remote, tag, fetch, pull, push.
+    Operations that can stop halfway: detecting a merge or rebase in progress and the conflict advice, then merge, cherry-pick, rebase, reflog.
+    Last and hardest: hunks and patches for add -p and unstage -p.
+
+How to use the reference
+
+    Use each command's tests as its specification, and only look at the reference code when you're stuck.
+    Read the comment at the top of each file first; each one explains what the file is for.
+    Run the Git command in a terminal and look at its output before writing any Go.
+    Move code into a shared file once a second command needs it.
+    Since you're starting fresh, use the clearer folder layout from the start.
